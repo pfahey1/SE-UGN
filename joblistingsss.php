@@ -4,7 +4,7 @@
          * Plugin Name: Job Listing
          * Author: Me
          * Version: 3.7
-         * Description: In depth                            
+         * Description: In depth
          */
 
 function job_listing() {
