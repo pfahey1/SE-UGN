@@ -57,6 +57,8 @@ function my_custom_post_product() {
 add_action( 'init', 'my_custom_post_product' );
 
 
+//Code Snippets below are credited to Ryan Taylor of Creative Bloq and was modified as needed
+
  $meta_box['job'] = array(
     'id' => 'jobs-meta-details',
     'title' => 'Job Details',
