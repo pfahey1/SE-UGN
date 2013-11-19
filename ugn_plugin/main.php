@@ -77,12 +77,72 @@ add_action( 'init', 'my_custom_post_product' );
             'id' => 'expiration_date',
             'type' => 'date',
             'default' => ''
-        )
+        ),
+
+        array(
+             'name' => 'Department:',
+            'desc' => '',
+            'id' => 'user_dept',
+            'type' => 'textarea2',
+            'default' => ''
+          ),
+
+        array(
+             'name' => 'Qualifications:',
+            'desc' => '',
+            'id' => 'qualif',
+            'type' => 'textarea3',
+            'default' => ''
+          ),        
+
+        array(
+             'name' => 'Work Study Required:',
+            'desc' => '',
+            'id' => 'work_study',
+            'type' => 'radio',
+            'options' => array(
+                array('name' => 'Yes', 'value' => 'Value 1'),
+                array('name' => 'No', 'value' => 'Value 2')),
+            'default' => ''
+          ),
+
+        array(
+             'name' => 'Pay Information (Optional):',
+            'desc' => '',
+            'id' => 'pay_info',
+            'type' => 'textarea3',
+            'default' => ''
+          ), 
+
+        array(
+             'name' => 'Contact Email:',
+            'desc' => '',
+            'id' => 'user_email',
+            'type' => 'textarea2',
+            'default' => ''
+          )
         
     )
 );  
 
+
+
 add_action('admin_menu', 'plib_add_box'); 
+
+function wp_custom_attachment() {  
+  
+    wp_nonce_field(plugin_basename(__FILE__), 'wp_custom_attachment_nonce');  
+      
+    $html = '<p class="description">';  
+        $html .= 'Upload your PDF here.';  
+    $html .= '</p>';  
+    $html .= '<input type="file" id="wp_custom_attachment" name="wp_custom_attachment" value="" size="25">';  
+      
+    echo $html;  
+  
+} 
+
+
 
 //Add meta boxes to post types
 function plib_add_box() {
@@ -137,7 +197,11 @@ function plib_format_box() {
               echo '<input type="date" name="'. $field['id']. '" id="'. $field['id'] .'" value="'. ($meta ? $meta : $field['default']) . '" size="30" style="width:97%" />'. '<br />'. $field['desc'];
               break;
 			  
-		   case 'textarea':
+		   case 'textarea2':
+              echo '<textarea name="'. $field['id']. '" id="'. $field['id']. '" cols="60" rows="1" style="width:97%">'. ($meta ? $meta : $field['default']) . '</textarea>'. '<br />'. $field['desc'];
+              break;
+
+       case 'textarea3':
               echo '<textarea name="'. $field['id']. '" id="'. $field['id']. '" cols="60" rows="4" style="width:97%">'. ($meta ? $meta : $field['default']) . '</textarea>'. '<br />'. $field['desc'];
               break;
       }
