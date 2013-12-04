@@ -47,6 +47,7 @@ function my_custom_post_product() {
         'description'   => 'This is the custom post type for the SoftEng class with Porter, Job Posting',
         'public'        => true,
         'menu_position' => 5,
+				'menu_icon'			=> plugins_url( 'icon.png', __FILE__ ),
         'supports'      => array( 'title', 'editor', 'thumbnail', 'excerpts', 'comments' ),
         'has_archive'   => true,
     );
@@ -244,6 +245,15 @@ function plib_save_data($post_id) {
 }
 
 add_action('save_post', 'plib_save_data');
+/*
+if ( have_posts() ) {
+		while ( have_posts() ) {
+			the_post(); 
 
+				query_posts( 'post_type=labels');
+
+		} // end while
+	} // end if
+*/
 
 ?>
