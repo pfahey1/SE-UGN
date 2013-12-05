@@ -243,9 +243,24 @@ function plib_save_data($post_id) {
         }
     }
 }
-
-add_action('save_post', 'plib_save_data');
 /*
+add_action('save_post', 'plib_save_data');
+function job_page(){
+	echo ("hello world");
+	 $my_post = array(
+  'post_title'    => 'cookiepolicy',
+  'post_content'  => 'this is my content',
+  'post_type'     => 'page',
+  'post_status'   => 'publish',
+  'post_author'   => 1,
+  'post_category' => array( 3,4 )
+  );
+
+  // Insert the post into the database
+  wp_insert_post( $my_post );
+}
+
+
 if ( have_posts() ) {
 		while ( have_posts() ) {
 			the_post(); 
