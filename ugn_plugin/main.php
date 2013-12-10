@@ -265,19 +265,19 @@ add_action('save_post',
 
 
 /**
- * hook into the_post and tack on our formatted extra content
+ * hook into the_content and tack on our formatted extra content
  */
 add_action('the_content',
     function ($content) use ($joblist_metabox) {
-        global $post;
+        global $post;   # we need the post_type so we can tell if this is a post we care about, and the post id to get the metadata
         if ( $post->post_type !== JOBLIST_POST_TYPE ) { return $content; }   # if this isn't our party, leave
 
-        foreach ($joblist_metabox['fields'] as $field) {
-            $meta = get_post_meta($post->ID, $field['id'], true);
-            # todo: format custom fields here
-            $content .= "<br />{$field['name']} $meta";    # this is just filler
+        foreach ($joblist_metabox['fields'] as $field) {                # loop through our custom fields
+            $meta = get_post_meta($post->ID, $field['id'], true);       # get the value for each field for this post
+            $content .= "<br />{$field['name']} $meta";                 # append the field name and value to the content that will be displayed
+                                                                        # todo: we probably want to format some of these fields differently
         }
-        return $content;
+        return $content;    # return the filtered content
     }
 );
 
