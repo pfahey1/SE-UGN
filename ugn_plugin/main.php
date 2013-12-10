@@ -282,6 +282,9 @@ add_action('the_content',
                     $content .= "<br />{$field['name']} No";
                 }
                 break;
+            case 'user_email':
+                $content .= "<br />{$field['name']} <a href=\"mailto:$meta\">$meta</a>";
+                break;
             default:
                 $content .= "<br />{$field['name']} $meta";                 # append the field name and value to the content that will be displayed
             }
