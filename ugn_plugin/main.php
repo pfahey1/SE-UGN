@@ -274,8 +274,17 @@ add_action('the_content',
 
         foreach ($joblist_metabox['fields'] as $field) {                # loop through our custom fields
             $meta = get_post_meta($post->ID, $field['id'], true);       # get the value for each field for this post
-            $content .= "<br />{$field['name']} $meta";                 # append the field name and value to the content that will be displayed
-                                                                        # todo: we probably want to format some of these fields differently
+            switch ($field['id']) {
+            case 'work_study':
+                if ($meta === "Value 1") {
+                    $content .= "<br />{$field['name']} Yes";
+                } else {
+                    $content .= "<br />{$field['name']} No";
+                }
+                break;
+            default:
+                $content .= "<br />{$field['name']} $meta";                 # append the field name and value to the content that will be displayed
+            }
         }
         return $content;    # return the filtered content
     }
