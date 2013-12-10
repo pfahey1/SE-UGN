@@ -275,7 +275,7 @@ add_action('the_content',
         foreach ($joblist_metabox['fields'] as $field) {                # loop through our custom fields
             $meta = get_post_meta($post->ID, $field['id'], true);       # get the value for each field for this post
             $content .= "<br />{$field['name']} $meta";                 # append the field name and value to the content that will be displayed
-                                                                        # todo: we probably want to format some of these fields differently
+						$content .= "Hello idiot";                                                            # todo: we probably want to format some of these fields differently
         }
         return $content;    # return the filtered content
     }
