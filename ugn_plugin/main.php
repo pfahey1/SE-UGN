@@ -270,7 +270,7 @@ add_action('save_post',
 add_action('the_content',
     function ($content) use ($joblist_metabox) {
         global $post;
-        if ( $post->post_type !== JOBLIST_POST_TYPE ) { return; }   # if this isn't our party, leave
+        if ( $post->post_type !== JOBLIST_POST_TYPE ) { return $content; }   # if this isn't our party, leave
 
         foreach ($joblist_metabox['fields'] as $field) {
             $meta = get_post_meta($post->ID, $field['id'], true);
