@@ -285,8 +285,17 @@ add_action('the_content',
 
         foreach ($joblist_metabox['fields'] as $field) {                # loop through our custom fields
             $meta = get_post_meta($post->ID, $field['id'], true);       # get the value for each field for this post
-            $content .= "<br />{$field['name']} $meta";                 # append the field name and value to the content that will be displayed
-                                                                        # todo: we probably want to format some of these fields differently
+            switch ($field['id']) {
+            case 'work_study':
+                if ($meta === "Value 1") {
+                    $content .= "<br />{$field['name']} Yes";
+                } else {
+                    $content .= "<br />{$field['name']} No";
+                }
+                break;
+            default:
+                $content .= "<br />{$field['name']} $meta";                 # append the field name and value to the content that will be displayed
+            }
         }
         return $content;    # return the filtered content
     }
@@ -304,29 +313,3 @@ function wp_custom_attachment() {
     echo $html;
 }
 
-/*
-function job_page(){
-	echo ("hello world");
-	 $my_post = array(
-  'post_title'    => 'cookiepolicy',
-  'post_content'  => 'this is my content',
-  'post_type'     => 'page',
-  'post_status'   => 'publish',
-  'post_author'   => 1,
-  'post_category' => array( 3,4 )
-  );
-
-  // Insert the post into the database
-  wp_insert_post( $my_post );
-}
-
-
-if ( have_posts() ) {
-		while ( have_posts() ) {
-			the_post(); 
-
-				query_posts( 'post_type=labels');
-
-		} // end while
-	} // end if
-*/
