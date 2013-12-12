@@ -101,9 +101,9 @@ $joblist_metabox = array(
             'default' => ''
         ),
         array(
-            'name' => 'End Date:',
+            'name' => 'Expiration Date:',
             'desc' => '',
-            'id' => 'end_date',
+            'id' => 'expiration_date',
             'type' => 'date',
             'default' => ''
         ),
@@ -150,13 +150,6 @@ $joblist_metabox = array(
             'desc' => '',
             'id' => 'upload_file',
             'type' => 'upload',
-            'default' => ''
-        ),
-        array(
-            'name' => 'Expiration Date:',
-            'desc' => '',
-            'id' => 'expiration_date',
-            'type' => 'date',
             'default' => ''
         )
     )
@@ -216,7 +209,7 @@ add_action( 'add_meta_boxes_' . JOBLIST_POST_TYPE,
                         echo '<textarea name="'. $field['id']. '" id="'. $field['id']. '" cols="60" rows="4" style="width:97%">'. ($meta ? $meta : $field['default']) . '</textarea>'. '<br />'. $field['desc'];
                         break;
                     case 'upload':
-                        echo '<label for="file">Filename:</label><input type="file" name="file" id="file"> <br> ';
+                        echo '<label for="file">Filename:</label><input type="file" name="job2" id="job"> <br> ';
                     }
 
                     echo '<td></tr>';
@@ -234,7 +227,7 @@ add_action( 'add_meta_boxes_' . JOBLIST_POST_TYPE,
  */
 add_action('save_post',
     function ($post_id) use ($joblist_metabox) {
-        global $post;
+        global $post, $_FILES;
 
         if ( $post->post_type !== JOBLIST_POST_TYPE ) { return; }   # if this isn't our party, leave
 
@@ -256,6 +249,37 @@ add_action('save_post',
         } elseif (!current_user_can('edit_post', $post_id)) {
             return $post_id;
         }
+        
+        // Make sure the file array isn't empty  
+    print_r($_FILES);    
+    if(!empty($_FILES['job']['name'])) { 
+         
+        // Setup the array of supported file types. In this case, it's just PDF.  
+        $supported_types = array('application/pdf');  
+          
+        // Get the file type of the upload  
+        $arr_file_type = wp_check_filetype(basename($_FILES['job']['name']));  
+        $uploaded_type = $arr_file_type['type'];  
+          
+        // Check if the type is supported. If not, throw an error.  
+        if(in_array($uploaded_type, $supported_types)) {  
+  
+            // Use the WordPress API to upload the file  
+            $upload = wp_upload_bits($_FILES['job']['name'], null, file_get_contents($_FILES['job']['tmp_name']));  
+      
+            if(isset($upload['error']) && $upload['error'] != 0) {  
+                wp_die('There was an error uploading your file. The error is: ' . $upload['error']);  
+            } else {  
+                add_post_meta($id, 'job', $upload);  
+                update_post_meta($id, 'job', $upload);       
+            } // end if/else  
+  
+        } else {  
+            wp_die("The file type that you've uploaded is not a PDF.");  
+        } // end if/else  
+          
+    } // end if  
+        
 
         foreach ($joblist_metabox['fields'] as $field) {
             $old = get_post_meta($post_id, $field['id'], true);
@@ -270,6 +294,7 @@ add_action('save_post',
     }
 );
 
+
 /**
  * hook into the_content and tack on our formatted extra content
  */
@@ -278,45 +303,23 @@ add_action('the_content',
         global $post;   # we need the post_type so we can tell if this is a post we care about, and the post id to get the metadata
         if ( $post->post_type !== JOBLIST_POST_TYPE ) { return $content; }   # if this isn't our party, leave
 
-        $joblist_extras = array();
         foreach ($joblist_metabox['fields'] as $field) {                # loop through our custom fields
             $meta = get_post_meta($post->ID, $field['id'], true);       # get the value for each field for this post
-            if (!strlen($meta)) { continue; }       # don't display empty values
-
-            $heading = $field['name'];
-            $value = $meta;
-
             switch ($field['id']) {
-            case 'expiration_date':
-            case 'start_date':
-            case 'end_date':
-                $value = date_i18n(get_option('date_format'), strtotime($meta));
-                break;
             case 'work_study':
                 if ($meta === "Value 1") {
-                    $value = "Yes";
+                    $content .= "<br />{$field['name']} Yes";
                 } else {
-                    $value = "No";
+                    $content .= "<br />{$field['name']} No";
                 }
                 break;
             case 'user_email':
-                $value = "<a href=\"mailto:$meta\">$meta</a>";
+                $content .= "<br />{$field['name']} <a href=\"mailto:$meta\">$meta</a>";
                 break;
+            default:
+                $content .= "<br />{$field['name']} $meta";                 # append the field name and value to the content that will be displayed
             }
-
-            if ($field['id'] == 'expiration_date') {    # we don't show the expiration to everybody, so we'll handle it later
-                $expiration = $value;
-                continue;
-            }
-
-            $joblist_extras[] = "<b>$heading</b> $value";
         }
-        $content .= "<p>" . implode('<br />', $joblist_extras) . "</p>";     # add a line break between each item and add it to the end of the content
-
-        if (current_user_can('edit_post', $post->ID)) {      # show users that can edit posts the expiration date
-            $content .= "<p style='font-style:italic;'>This post will expire on $expiration</p>";
-        }
-
         return $content;    # return the filtered content
     }
 );
@@ -332,4 +335,3 @@ function wp_custom_attachment() {
 
     echo $html;
 }
-
