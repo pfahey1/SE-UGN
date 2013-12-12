@@ -272,23 +272,29 @@ add_action('the_content',
         global $post;   # we need the post_type so we can tell if this is a post we care about, and the post id to get the metadata
         if ( $post->post_type !== JOBLIST_POST_TYPE ) { return $content; }   # if this isn't our party, leave
 
+        $joblist_extras = array();
         foreach ($joblist_metabox['fields'] as $field) {                # loop through our custom fields
             $meta = get_post_meta($post->ID, $field['id'], true);       # get the value for each field for this post
+            if (!strlen($meta)) { continue; }       # don't display empty values
+
+            $heading = $field['name'];
+            $value = $meta;
+
             switch ($field['id']) {
             case 'work_study':
                 if ($meta === "Value 1") {
-                    $content .= "<br />{$field['name']} Yes";
+                    $value = "Yes";
                 } else {
-                    $content .= "<br />{$field['name']} No";
+                    $value = "No";
                 }
                 break;
             case 'user_email':
-                $content .= "<br />{$field['name']} <a href=\"mailto:$meta\">$meta</a>";
+                $value = "<a href=\"mailto:$meta\">$meta</a>";
                 break;
-            default:
-                $content .= "<br />{$field['name']} $meta";                 # append the field name and value to the content that will be displayed
             }
+            $joblist_extras[] = "<b>$heading</b> $value";
         }
+        $content .= implode('<br />', $joblist_extras);
         return $content;    # return the filtered content
     }
 );
