@@ -101,9 +101,9 @@ $joblist_metabox = array(
             'default' => ''
         ),
         array(
-            'name' => 'Expiration Date:',
+            'name' => 'End Date:',
             'desc' => '',
-            'id' => 'expiration_date',
+            'id' => 'end_date',
             'type' => 'date',
             'default' => ''
         ),
@@ -150,6 +150,13 @@ $joblist_metabox = array(
             'desc' => '',
             'id' => 'upload_file',
             'type' => 'upload',
+            'default' => ''
+        ),
+        array(
+            'name' => 'Expiration Date:',
+            'desc' => '',
+            'id' => 'expiration_date',
+            'type' => 'date',
             'default' => ''
         )
     )
