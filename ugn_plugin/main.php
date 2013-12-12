@@ -270,7 +270,6 @@ add_action('save_post',
     }
 );
 
-
 /**
  * hook into the_content and tack on our formatted extra content
  */
@@ -288,6 +287,11 @@ add_action('the_content',
             $value = $meta;
 
             switch ($field['id']) {
+            case 'expiration_date':
+            case 'start_date':
+            case 'end_date':
+                $value = date_i18n(get_option('date_format'), strtotime($meta));
+                break;
             case 'work_study':
                 if ($meta === "Value 1") {
                     $value = "Yes";
@@ -299,9 +303,20 @@ add_action('the_content',
                 $value = "<a href=\"mailto:$meta\">$meta</a>";
                 break;
             }
+
+            if ($field['id'] == 'expiration_date') {    # we don't show the expiration to everybody, so we'll handle it later
+                $expiration = $value;
+                continue;
+            }
+
             $joblist_extras[] = "<b>$heading</b> $value";
         }
-        $content .= implode('<br />', $joblist_extras);
+        $content .= "<p>" . implode('<br />', $joblist_extras) . "</p>";     # add a line break between each item and add it to the end of the content
+
+        if (current_user_can('edit_post', $post->ID)) {      # show users that can edit posts the expiration date
+            $content .= "<p style='font-style:italic;'>This post will expire on $expiration</p>";
+        }
+
         return $content;    # return the filtered content
     }
 );
