@@ -220,7 +220,7 @@ add_action( 'add_meta_boxes_' . JOBLIST_POST_TYPE,
                         echo '<input type="date" name="'. $field['id']. '" id="'. $field['id'] .'" value="'. ($meta ? $meta : $field['default']) . '" size="30" style="width:97%" />'. '<br />'. $field['desc'];
                         break;
                     case 'email':
-                        echo '<textarea name="'. $field['id']. '" id="'. $field['id']. '" cols="60" rows="1" style="width:97%">'. ($meta ? $meta : $field['default']) . '</textarea>'. '<br />'. $field['desc'];
+                        echo '<input type="email" name="'. $field['id']. '" id="'. $field['id']. '" cols="60" rows="1" style="width:97%">'. ($meta ? $meta : $field['default']) . '</textarea>'. '<br />'. $field['desc'];
                         break;
                     case 'upload':
                         echo '<input type="file" name="job" id="job"><br />';
