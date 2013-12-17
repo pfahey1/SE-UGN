@@ -26,6 +26,8 @@
  */
 
 define('JOBLIST_POST_TYPE', 'joblisting');
+define('JOBLIST_DEFAULT_EXP', (60 * 60 * 24 * 90));
+define ('JOBLIST_EXP_WARNING', (60 * 60 * 24 * 3));
 
 /**
  * Register our custom post type
@@ -182,6 +184,11 @@ add_action( 'add_meta_boxes_' . JOBLIST_POST_TYPE,
                     // get current post meta data
                     $meta = get_post_meta($post->ID, $field['id'], true);
 
+                    // default expiration date is 3 months from now
+                    if ($field['id'] == 'expiration_date' and !strlen($meta)) {
+                        $meta = date('Y-m-d', time() + JOBLIST_DEFAULT_EXP);
+                    }
+
                     echo '<tr><th style="width:20%"><label for="'. $field['id'] .'">'. $field['name']. '</label></th><td>';
 
                     switch ($field['type']) {
@@ -216,7 +223,7 @@ add_action( 'add_meta_boxes_' . JOBLIST_POST_TYPE,
                         echo '<textarea name="'. $field['id']. '" id="'. $field['id']. '" cols="60" rows="4" style="width:97%">'. ($meta ? $meta : $field['default']) . '</textarea>'. '<br />'. $field['desc'];
                         break;
                     case 'upload':
-                        echo '<input type="file" name="job" id="job"> <br> ';
+                        echo '<input type="file" name="job" id="job"><br />';
                         echo  '<script type="text/javascript">
                               jQuery("#post").attr("enctype", "multipart/form-data");
                               </script>';
@@ -259,33 +266,29 @@ add_action('save_post',
         } elseif (!current_user_can('edit_post', $post_id)) {
             return $post_id;
         }
-    //print_r($_FILES)    
-    if(!empty($_FILES['job']['name'])) { 
-         
-        $supported_types = array(/*'application/pdf'*/);             
-        $arr_file_type = wp_check_filetype(basename($_FILES['job']['name']));  
-        $uploaded_type = $arr_file_type['type'];  
-          
-        // selective functionality is here i added ! to allow everything 
-        if(!in_array($uploaded_type, $supported_types)) {  
-  
-            $upload = wp_upload_bits($_FILES['job']['name'], null, file_get_contents($_FILES['job']['tmp_name']));  
-      
-            if(isset($upload['error']) && $upload['error'] != 0) {  
-                wp_die('There was an error uploading your file. The error is: ' . $upload['error']);  
-            } else {  
-                update_post_meta($post_id, 'upload_file', $upload);
-                //print_r($upload);  was using this to check that things are gettng uploaded
-                //right now it doesnt have write access or something which i'm going to look at over the weekend       
-            }  
-  
-        } else {  
-            wp_die("The file type that you've uploaded is not a PDF.");  
-        }  
-          
-    }
+
+        if(!empty($_FILES['job']['name'])) {
+            $supported_types = array(/*'application/pdf'*/);
+            $arr_file_type = wp_check_filetype(basename($_FILES['job']['name']));
+            $uploaded_type = $arr_file_type['type'];
+
+            // selective functionality is here i added ! to allow everything
+            if(!in_array($uploaded_type, $supported_types)) {
+
+                $upload = wp_upload_bits($_FILES['job']['name'], null, file_get_contents($_FILES['job']['tmp_name']));
+
+                if(isset($upload['error']) && $upload['error'] != 0) {
+                    wp_die('There was an error uploading your file. The error is: ' . $upload['error']);
+                } else {
+                    update_post_meta($post_id, 'upload_file', $upload);
+                }
+            } else {
+                wp_die("The file type that you've uploaded is not a PDF.");
+            }
+        }
 
         foreach ($joblist_metabox['fields'] as $field) {
+            if ($field['id'] == 'upload_file') { continue; }    // we handle uploaded files above
             $old = get_post_meta($post_id, $field['id'], true);
             $new = sanitize_text_field( $_POST[$field['id']] );
 
@@ -309,7 +312,7 @@ add_action('the_content',
         $joblist_extras = array();
         foreach ($joblist_metabox['fields'] as $field) {                # loop through our custom fields
             $meta = get_post_meta($post->ID, $field['id'], true);       # get the value for each field for this post
-            if (!strlen($meta)) { continue; }       # don't display empty values
+            if ($field['id'] != 'upload_file' and !strlen($meta)) { continue; }       # don't display empty values
 
             $heading = $field['name'];
             $value = $meta;
@@ -330,6 +333,12 @@ add_action('the_content',
             case 'user_email':
                 $value = "<a href=\"mailto:$meta\">$meta</a>";
                 break;
+            case 'upload_file':
+                if (!isset($meta['url'])) { continue 2; }     // no file
+                $value = "<a href=\"{$meta['url']}\" target=\"_blank\" download>" .
+                    preg_replace('/^.*\//', '', $meta['url']) .
+                    "</a>";
+                break;
             }
 
             if ($field['id'] == 'expiration_date') {    # we don't show the expiration to everybody, so we'll handle it later
@@ -349,14 +358,31 @@ add_action('the_content',
     }
 );
 
-# todo: What does this do? We're not using it anywhere...
-function wp_custom_attachment() {
-    wp_nonce_field(plugin_basename(__FILE__), 'wp_custom_attachment_nonce');
-
-    $html = '<p class="description">';
-    $html .= 'Upload your PDF here.';
-    $html .= '</p>';
-    $html .= '<input type="file" id="wp_custom_attachment" name="wp_custom_attachment" value="" size="25">';
-
-    echo $html;
+/**
+ * Handle expiring posts
+ */
+if ( ! wp_next_scheduled( 'joblist_cron' ) ) {
+    wp_schedule_event( time(), 'daily', 'joblist_cron' );
 }
+add_action( 'joblist_cron',
+    function () {
+        $job_posts = get_posts(array('post_type' => JOBLIST_POST_TYPE, 'post_status' => 'publish'));
+        if (!count($job_posts)) { return; }
+
+        foreach ($job_posts as $p) {
+            $expiration = get_post_meta($p->ID, 'expiration_data', true);
+            if ($expiration < time()) {
+                wp_trash_post($p->ID);
+            } else if ($expiration < time() + JOBLIST_EXP_WARNING) {
+                $email = get_post_meta($p->ID, 'user_email', true);
+                $subject = "Your Job Listing \"{$p->post_title} Will Expire Soon";
+                $formatted_exp = date_i18n(get_option('date_format'), strtotime($expiration));
+                $edit_link = get_edit_post_link($p->ID, '');
+                $text = <<<EOF
+Your job listing {$p->post_title} will expire on $formatted_exp.  To prevent it being automatically sent to the trash, update the expiration date at <a href="$edit_link">$edit_link</a>.
+EOF;
+                wp_mail($email, $subject, $text);
+            }
+        }
+    }
+);
