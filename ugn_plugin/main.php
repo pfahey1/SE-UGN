@@ -86,21 +86,13 @@ register_activation_hook( __FILE__,
     }
 );
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-
 //Code Snippets below are credited to Ryan Taylor of Creative Bloq and was modified as needed
 
- $meta_box['job'] = array(
-=======
-$meta_box['job'] = array(
->>>>>>> 3ddf91af3873cdac56e85df6eafc24e81074526a
-=======
 /**
  * Define our custom fields
  */
 $joblist_metabox = array(
->>>>>>> 1cb0f2c94291f6ff9e67295077259acd8c2fc43c
+
     'id' => 'jobs-meta-details',
     'title' => 'Job Details',
     'context' => 'normal',
@@ -124,14 +116,14 @@ $joblist_metabox = array(
             'name' => 'Department:',
             'desc' => '',
             'id' => 'user_dept',
-            'type' => 'textarea2',
+            'type' => 'textarea',
             'default' => ''
         ),
         array(
             'name' => 'Qualifications:',
             'desc' => '',
             'id' => 'qualif',
-            'type' => 'textarea3',
+            'type' => 'textarea',
             'default' => ''
         ),
         array(
@@ -148,14 +140,14 @@ $joblist_metabox = array(
             'name' => 'Pay Information (Optional):',
             'desc' => '',
             'id' => 'pay_info',
-            'type' => 'textarea3',
+            'type' => 'textarea',
             'default' => ''
         ),
         array(
             'name' => 'Contact Email:',
             'desc' => '',
             'id' => 'user_email',
-            'type' => 'textarea2',
+            'type' => 'email',
             'default' => ''
         ),
         array(
@@ -227,11 +219,8 @@ add_action( 'add_meta_boxes_' . JOBLIST_POST_TYPE,
                     case 'date':
                         echo '<input type="date" name="'. $field['id']. '" id="'. $field['id'] .'" value="'. ($meta ? $meta : $field['default']) . '" size="30" style="width:97%" />'. '<br />'. $field['desc'];
                         break;
-                    case 'textarea2':
+                    case 'email':
                         echo '<textarea name="'. $field['id']. '" id="'. $field['id']. '" cols="60" rows="1" style="width:97%">'. ($meta ? $meta : $field['default']) . '</textarea>'. '<br />'. $field['desc'];
-                        break;
-                    case 'textarea3':
-                        echo '<textarea name="'. $field['id']. '" id="'. $field['id']. '" cols="60" rows="4" style="width:97%">'. ($meta ? $meta : $field['default']) . '</textarea>'. '<br />'. $field['desc'];
                         break;
                     case 'upload':
                         echo '<input type="file" name="job" id="job"><br />';
